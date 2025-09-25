@@ -1,0 +1,2 @@
+# aws-sample-app
+AWSをバックエンドとするamplifyのサンプルアプリ
