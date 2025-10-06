@@ -1,6 +1,6 @@
 export const cognitoAuthConfig = {
   authority: "https://cognito-idp.ap-northeast-1.amazonaws.com/ap-northeast-1_kw2EVel03",
-  client_id: "1ar8e89c954jnk9qm2974g2iag",
+  client_id: "7k8a3h0gto61gdes5b32i3he2q",
   redirect_uri: `${window.location.protocol}//${window.location.host}/`,
   response_type: "code",
   scope: "openid email profile",
