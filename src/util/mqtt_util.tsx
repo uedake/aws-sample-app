@@ -35,7 +35,6 @@ export class MqttManager {
     provider: AWSCognitoCredentialsProvider
 
     constructor(region: string, endpoint: string, creds: AWSCredentials) {
-        iot.AwsIotMqtt5ClientConfigBuilder
         this.provider = new AWSCognitoCredentialsProvider(
             creds, region
         );
