@@ -22,5 +22,10 @@
   },
   "include": [
     "src"
-  ]
+  ],
+  "paths": {
+    "aws-iot-device-sdk-v2": [
+      "node_modules/aws-iot-device-sdk-v2/dist/browser"
+    ]
+  },
 }

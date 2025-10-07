@@ -1,14 +1,14 @@
-import React from 'react';
 import { render, screen } from '@testing-library/react';
 import App from './App';
-import { AuthProvider } from "react-oidc-context";
-import {cognitoAuthConfig, logoutConfig} from "./setting";
+import Auth from './Auth';
 
 test('renders learn react link', () => {
   render(
-    <AuthProvider {...cognitoAuthConfig}>
-      <App {...cognitoAuthConfig} {...logoutConfig}/>
-    </AuthProvider>
+    <Auth>
+      {
+        (creds) => <App creds={creds} />
+      }
+    </Auth>
   );
   const linkElement = screen.getByText(/learn react/i);
   expect(linkElement).toBeInTheDocument();

@@ -1,23 +1,21 @@
-import React from 'react';
 import ReactDOM from 'react-dom/client';
 import './index.css';
+import Auth from './Auth';
 import App from './App';
 import reportWebVitals from './reportWebVitals';
-import { AuthProvider } from "react-oidc-context";
-import {cognitoAuthConfig, logoutConfig} from "./setting";
 
 
 const root = ReactDOM.createRoot(document.getElementById("root")!);
 
-console.log(cognitoAuthConfig.redirect_uri)
-
 // wrap the application with AuthProvider
 root.render(
-  <React.StrictMode>
-    <AuthProvider {...cognitoAuthConfig}>
-      <App {...cognitoAuthConfig} {...logoutConfig}/>
-    </AuthProvider>
-  </React.StrictMode>
+  // <React.StrictMode>
+  <Auth>
+    {
+      (creds) => <App creds={creds} />
+    }
+  </Auth>
+  // </React.StrictMode>
 );
 
 reportWebVitals(console.log);
