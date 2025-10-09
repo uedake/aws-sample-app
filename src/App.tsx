@@ -50,6 +50,19 @@ const App: React.FC<Props> = ({ session, user, refreshAuth }) => {
           IOT_ENDPOINT,
           session.credentials,
           refreshAuth,
+          async () => {
+            const api = apiCallerRef.current
+            const response = await api?.call("GET", "permit_iotcore_access", {
+              queryParams: {
+                cognitoIdentityId: session.identityId
+              }
+            })
+            if (!response["result"]) {
+              console.error("fail to attach policy")
+              return false
+            }
+            return true
+          },
           (clientId: string) => {
             if (clientId == mqttRef.current?.clientId) {
               setMqttState("CONNECTED")
@@ -132,18 +145,7 @@ const App: React.FC<Props> = ({ session, user, refreshAuth }) => {
 
   const connectMqtt = async (): Promise<boolean> => {
     setMqttState("CONNECTING")
-    const api = apiCallerRef.current
-    const response = await api?.call("GET", "permit_iotcore_access", {
-      queryParams: {
-        cognitoIdentityId: session.identityId
-      }
-    })
-    if (!response["result"]) {
-      console.error("fail to attach policy")
-      return false
-    }
     console.log(`start ${mqttRef.current?.clientId}`)
-
     const result = await mqttRef.current!.start()
     return result
   }

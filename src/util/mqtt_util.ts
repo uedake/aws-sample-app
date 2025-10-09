@@ -32,22 +32,26 @@ class AWSCognitoCredentialsProvider extends auth.CredentialsProvider {
 
 
 export class MqttManager {
-    active: boolean = false;
+    autoConnect: boolean;
+    attachPolicyCallback?: () => Promise<boolean>
     clientId: string
     client: mqtt5.Mqtt5Client
+
+    active: boolean = false;
     messageCallbacks: Record<string, (obj: object) => void> = {}
-    autoConnect: boolean;
 
     constructor(
         region: string,
         endpoint: string,
         creds: AWSCredentials,
         refreshAuth: (force: boolean) => Promise<void>,
+        attachPolicyCallback?: () => Promise<boolean>,
         onConnected?: (clientId: string) => void,
         onDisconnected?: (clientId: string) => void,
         autoConnect = true
     ) {
         this.autoConnect = autoConnect
+        this.attachPolicyCallback = attachPolicyCallback
         this.clientId = `k-ueda-${Date.now()}`
         const provider = new AWSCognitoCredentialsProvider(
             creds, region, refreshAuth
@@ -130,6 +134,13 @@ export class MqttManager {
         }
     }
     async start() {
+        if (this.attachPolicyCallback) {
+            const attached = await this.attachPolicyCallback()
+            if (!attached) {
+                console.error("Fail to attach policy");
+                return false
+            }
+        }
         try {
             this.active = true
             const client = this.client
