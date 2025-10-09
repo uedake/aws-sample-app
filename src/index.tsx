@@ -12,7 +12,7 @@ root.render(
   // <React.StrictMode>
   <Auth>
     {
-      (creds) => <App creds={creds} />
+      (session, user, refreshAuth) => <App session={session} user={user} refreshAuth={refreshAuth} />
     }
   </Auth>
   // </React.StrictMode>

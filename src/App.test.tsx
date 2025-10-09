@@ -6,7 +6,7 @@ test('renders learn react link', () => {
   render(
     <Auth>
       {
-        (creds) => <App creds={creds} />
+        (session, user, refreshAuth) => <App session={session} user={user} refreshAuth={refreshAuth} />
       }
     </Auth>
   );

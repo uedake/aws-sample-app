@@ -1,51 +1,60 @@
 import React, { ReactNode, useEffect, useState } from "react";
-import { configureAWS } from "./config";
-import { fetchAuthSession, signInWithRedirect, signOut, getCurrentUser } from "@aws-amplify/auth";
-import { AWSCredentials } from "@aws-amplify/core/dist/esm/singleton/Auth/types"
+import { configureAWS, REGION } from "./config";
+import { fetchAuthSession, signInWithRedirect, signOut, getCurrentUser, AuthSession, AuthUser } from "@aws-amplify/auth";
 import { STSClient, GetCallerIdentityCommand } from "@aws-sdk/client-sts";
 
 configureAWS();
 
 type Props = {
-  children: (creds: AWSCredentials) => ReactNode;
+  children: (
+    session: AuthSession,
+    user: AuthUser,
+    refreshAuth: (force: boolean) => Promise<void>
+  ) => ReactNode;
 };
 
 const Auth: React.FC<Props> = ({ children }) => {
-  const [creds, setCreds] = useState<AWSCredentials | undefined>(undefined)
-  useEffect(() => {
-    const init = async () => {
-      try {
-        const session = await fetchAuthSession();
+  const [session, setSession] = useState<AuthSession | undefined>(undefined)
+  const [user, setUser] = useState<AuthUser | undefined>(undefined)
+  const refreshAuth = async (force: boolean = true) => {
+    try {
+      const _session = await fetchAuthSession({ forceRefresh: force });
 
-        console.log("session", session)
+      console.log("session", _session)
+      if (!_session.tokens) {
         // 未認証なら Hosted UI にリダイレクト
-        if (!session.tokens) {
-          console.log("redirect")
-          await signInWithRedirect();
-          return;
-        }
-
-        // 認証済み
-        const user = await getCurrentUser()
-        console.log("user", user)
-        const creds = session.identityId ? session.credentials : undefined;
-        setCreds(creds)
-
-
-        const sts = new STSClient({
-          credentials: creds,
-          region: "ap-northeast-1"
-        });
-
-        const identity = await sts.send(new GetCallerIdentityCommand({}));
-        console.log("role arn", identity.Arn); // IAM ロール ARN がわかる
-
-
-      } catch (err) {
-        console.error("Error initializing app:", err);
+        console.log("redirect")
+        await signInWithRedirect();
+        console.error("here never called")
+        return;
       }
-    };
-    init();
+
+      // 認証済み
+      const user = await getCurrentUser()
+      console.log("user", user)
+      setSession(_session)
+      setUser(user)
+
+      const stsClient = new STSClient({
+        region: REGION,
+        credentials: _session.credentials,
+      });
+      const response = await stsClient.send(new GetCallerIdentityCommand({}));
+      console.log("sts", response)
+
+      const access_exp = _session.tokens?.accessToken?.payload?.exp!
+      const id_exp = _session.tokens?.idToken?.payload?.exp
+      const exp = id_exp ? Math.min(access_exp, id_exp) : access_exp
+      const margin_sec = 10
+      const sec = exp - (Date.now() / 1000) - margin_sec
+      setTimeout(refreshAuth, sec * 1000)
+    } catch (err) {
+      console.error("Error initializing app:", err);
+    }
+  };
+
+  useEffect(() => {
+    refreshAuth(false);
   }, []);
 
   const handleSignOut = async () => {
@@ -53,10 +62,10 @@ const Auth: React.FC<Props> = ({ children }) => {
   };
 
   return (
-    creds ?
+    session ?
       <div>
         <button onClick={handleSignOut}>Sign Out</button>
-        {children(creds!)}
+        {children(session!, user!, refreshAuth)}
       </div> :
       <div>
         <button onClick={handleSignOut}>Sign Out</button>

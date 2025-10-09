@@ -2,14 +2,15 @@ import { Amplify } from "aws-amplify";
 
 //ユーザーのAWSリソースに合わせて設定////////////////////
 
+export const ACCOUNT = "821721610090"
 export const REGION = "ap-northeast-1"
 const USER_POOL_POSTFIX = "kw2EVel03"
 const USER_POOL_ID = `${REGION}_${USER_POOL_POSTFIX}`
 const USER_POOL_CLIENT_ID = "7k8a3h0gto61gdes5b32i3he2q"
 const identityPoolIdDict = {
-  test: "ap-northeast-1:1f94fda5-7ce9-48ae-9377-0d18f0fa37e8",
-  dev: "ap-northeast-1:4f68111a-4328-470d-a720-9008d514357c",
-  main: "ap-northeast-1:7931b3ca-de4f-46e9-a448-d93a180b9120"
+  test: "ap-northeast-1:c5cae8fb-d98c-4157-843e-08059fe5d68f",
+  dev: "ap-northeast-1:41ea0453-9fc2-44bd-bdf9-8219a55cedc5",
+  main: "ap-northeast-1:f1954f13-dfa2-4aed-a9e7-a673c50cdccc"
 }
 const ENV_KEYS = {
   BRANCH: "REACT_APP_Branch",
@@ -21,6 +22,10 @@ if (branch !== "main" && branch !== "dev" && branch !== "test") {
   throw Error("implemented error")
 }
 export const identityPoolId = identityPoolIdDict[branch]
+export const MQTT_CONFIG = {
+  region: REGION,
+  endpoint: `wss://${IOT_ENDPOINT}/mqtt`,
+}
 
 export function configureAWS() {
   const redirect_uri = `${window.location.protocol}//${window.location.host}/`
@@ -41,7 +46,10 @@ export function configureAWS() {
           }
         }
       }
-    }
+    },
+    // PubSub: {
+    //   AWSIoT: MQTT_CONFIG,
+    // },
   };
   Amplify.configure(authconfig)
 };
